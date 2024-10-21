@@ -37,4 +37,18 @@ public class WalletController {
         BaseResponseDto response = walletService.getAllWalletsByUserId(userDetails);
         return new ResponseEntity<>(response, response.getStatus());
     }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('user')")
+    public ResponseEntity<BaseResponseDto> getWalletById(@PathVariable Long id) {
+        BaseResponseDto response = walletService.getWalletById(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('user')")
+    public ResponseEntity<BaseResponseDto> deleteWalletById(@PathVariable Long id) {
+        BaseResponseDto response = walletService.delete(id);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 }

@@ -99,6 +99,37 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    public BaseResponseDto getWalletById(Long id) {
+        Optional<Wallet> wallet = walletRepository.findById(id);
+
+        if(wallet.isEmpty()){
+            throw new WalletNotFoundException("Wallet with id " + id + " not found!");
+        }
+
+        //Revisi
+        ResWalletDto response = new ResWalletDto(
+                wallet.get().getId(),
+                wallet.get().getName(),
+                new ResWalletTypeDto(
+                        wallet.get().getWalletType().getId(),
+                        wallet.get().getWalletType().getName()
+                ),
+                0.0,
+                0.0,
+                0.0
+        );
+
+        Map<String, Object> data = new HashMap<>();
+        data.put(Constant.WALLET, response);
+
+        return BaseResponseDto.builder()
+                .status(HttpStatus.OK)
+                .description(Constant.SUCCESS)
+                .data(data)
+                .build();
+    }
+
+    @Override
     public BaseResponseDto update(Long id, ReqSaveWalletDto requests) {
         Optional<Wallet> wallet = walletRepository.findById(id);
 
@@ -136,6 +167,25 @@ public class WalletServiceImpl implements WalletService {
 
         Map<String, Object> data = new HashMap<>();
         data.put(Constant.WALLET, response);
+
+        return BaseResponseDto.builder()
+                .status(HttpStatus.OK)
+                .description(Constant.SUCCESS)
+                .data(data)
+                .build();
+    }
+
+    @Override
+    public BaseResponseDto delete(Long id) {
+        Optional<Wallet> wallet = walletRepository.findById(id);
+
+        if (wallet.isEmpty()) {
+            throw new WalletNotFoundException("Wallet with id " + id + " not found!");
+        }
+
+        walletRepository.softDelete(id);
+
+        Map<String, Object> data = new HashMap<>();
 
         return BaseResponseDto.builder()
                 .status(HttpStatus.OK)
