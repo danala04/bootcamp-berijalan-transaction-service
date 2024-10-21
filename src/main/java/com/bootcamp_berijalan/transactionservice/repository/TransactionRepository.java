@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findByWalletIdAndDeletedAtIsNotNull(long id);
+    List<Transaction> findByWalletIdAndDeletedAtIsNull(long id);
     Optional<Transaction> findByIdAndDeletedAtIsNull(long id);
 
     @Transactional

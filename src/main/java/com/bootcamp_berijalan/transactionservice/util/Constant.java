@@ -6,4 +6,6 @@ public interface Constant {
     String WALLETS = "wallets";
     String TRANSACTION = "transaction";
     String TRANSACTIONS = "transactions";
+    Integer INCOME_ID = 1;
+    Integer EXPENSE_ID = 2;
 }

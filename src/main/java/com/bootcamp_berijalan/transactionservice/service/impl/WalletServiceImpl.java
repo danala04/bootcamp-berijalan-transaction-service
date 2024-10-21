@@ -2,6 +2,7 @@ package com.bootcamp_berijalan.transactionservice.service.impl;
 
 import com.bootcamp_berijalan.transactionservice.dto.BaseResponseDto;
 import com.bootcamp_berijalan.transactionservice.dto.request.ReqSaveWalletDto;
+import com.bootcamp_berijalan.transactionservice.dto.response.ResTotalIncomeExpenseDto;
 import com.bootcamp_berijalan.transactionservice.dto.response.ResWalletDto;
 import com.bootcamp_berijalan.transactionservice.dto.response.ResWalletTypeDto;
 import com.bootcamp_berijalan.transactionservice.entity.Wallet;
@@ -10,7 +11,9 @@ import com.bootcamp_berijalan.transactionservice.exception.WalletNotFoundExcepti
 import com.bootcamp_berijalan.transactionservice.exception.WalletTypeNotFoundException;
 import com.bootcamp_berijalan.transactionservice.repository.WalletRepository;
 import com.bootcamp_berijalan.transactionservice.repository.WalletTypeRepository;
+import com.bootcamp_berijalan.transactionservice.service.TransactionService;
 import com.bootcamp_berijalan.transactionservice.service.WalletService;
+import com.bootcamp_berijalan.transactionservice.service.factory.WalletFactoryService;
 import com.bootcamp_berijalan.transactionservice.util.Constant;
 import com.bootcamp_berijalan.transactionservice.util.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +33,9 @@ public class WalletServiceImpl implements WalletService {
 
     @Autowired
     WalletTypeRepository walletTypeRepository;
+
+    @Autowired
+    WalletFactoryService walletFactoryService;
 
     @Override
     public BaseResponseDto save(CustomUserDetails customUserDetails, ReqSaveWalletDto requests) {
@@ -76,20 +82,24 @@ public class WalletServiceImpl implements WalletService {
             throw new WalletNotFoundException("Wallets with userId " + customUserDetails.getId() + " not found!");
         }
 
-        //Revisi
         List<ResWalletDto> walletResponses = wallets.stream()
-                .map(wallet -> new ResWalletDto(
-                        wallet.getId(),
-                        wallet.getName(),
-                        new ResWalletTypeDto(
-                                wallet.getWalletType().getId(),
-                                wallet.getWalletType().getName()
-                        ),
-                        0.0,
-                        0.0,
-                        0.0
-                ))
+                .map(wallet -> {
+                    ResTotalIncomeExpenseDto amount = walletFactoryService.setTotalIncomeExpense(wallet.getId());
+
+                    return new ResWalletDto(
+                            wallet.getId(),
+                            wallet.getName(),
+                            new ResWalletTypeDto(
+                                    wallet.getWalletType().getId(),
+                                    wallet.getWalletType().getName()
+                            ),
+                            amount.getTotalAmount(),
+                            amount.getTotalIncome(),
+                            amount.getTotalExpense()
+                    );
+                })
                 .toList();
+
 
         Map<String, Object> data = new HashMap<>();
         data.put(Constant.WALLETS, walletResponses);
@@ -109,7 +119,8 @@ public class WalletServiceImpl implements WalletService {
             throw new WalletNotFoundException("Wallet with id " + id + " not found!");
         }
 
-        //Revisi
+        ResTotalIncomeExpenseDto amount = walletFactoryService.setTotalIncomeExpense(id);
+
         ResWalletDto response = new ResWalletDto(
                 wallet.get().getId(),
                 wallet.get().getName(),
@@ -117,9 +128,9 @@ public class WalletServiceImpl implements WalletService {
                         wallet.get().getWalletType().getId(),
                         wallet.get().getWalletType().getName()
                 ),
-                0.0,
-                0.0,
-                0.0
+                amount.getTotalAmount(),
+                amount.getTotalIncome(),
+                amount.getTotalExpense()
         );
 
         Map<String, Object> data = new HashMap<>();
@@ -155,7 +166,8 @@ public class WalletServiceImpl implements WalletService {
 
         walletRepository.save(updatedWallet);
 
-        //Revisi
+        ResTotalIncomeExpenseDto amount = walletFactoryService.setTotalIncomeExpense(id);
+
         ResWalletDto response = new ResWalletDto(
                 updatedWallet.getId(),
                 updatedWallet.getName(),
@@ -163,9 +175,9 @@ public class WalletServiceImpl implements WalletService {
                         walletType.get().getId(),
                         walletType.get().getName()
                 ),
-                0.0,
-                0.0,
-                0.0
+                amount.getTotalAmount(),
+                amount.getTotalIncome(),
+                amount.getTotalExpense()
         );
 
         Map<String, Object> data = new HashMap<>();

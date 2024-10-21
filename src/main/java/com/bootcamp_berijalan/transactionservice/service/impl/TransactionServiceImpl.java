@@ -98,7 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public BaseResponseDto getTransactionsByWalletId(Long walletId) {
-        List<Transaction> transactions = transactionRepository.findByWalletIdAndDeletedAtIsNotNull(walletId);
+        List<Transaction> transactions = transactionRepository.findByWalletIdAndDeletedAtIsNull(walletId);
 
         if (transactions.isEmpty()) {
             throw new TransactionNotFoundException("Transaction with wallet id " + walletId + " not found");
