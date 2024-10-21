@@ -33,7 +33,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public BaseResponseDto save(CustomUserDetails customUserDetails, ReqSaveWalletDto requests) {
-        Optional<WalletType> walletType = walletTypeRepository.findById(requests.getTypeId().longValue());
+        Optional<WalletType> walletType = walletTypeRepository.findActiveById(requests.getTypeId().longValue());
 
         if(walletType.isEmpty()){
             throw new WalletTypeNotFoundException("Wallet type with id " + requests.getTypeId() + " not found");
@@ -70,8 +70,11 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public BaseResponseDto getAllWalletsByUserId(CustomUserDetails customUserDetails) {
-        List<Wallet> wallets = walletRepository.findByUserId(customUserDetails.getId())
-                .orElseThrow(() -> new WalletNotFoundException("Wallets with userId " + customUserDetails.getId() + " not found!"));
+        List<Wallet> wallets = walletRepository.findActiveByUserId(customUserDetails.getId());
+
+        if (wallets.isEmpty()) {
+            throw new WalletNotFoundException("Wallets with userId " + customUserDetails.getId() + " not found!");
+        }
 
         //Revisi
         List<ResWalletDto> walletResponses = wallets.stream()
@@ -100,7 +103,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public BaseResponseDto getWalletById(Long id) {
-        Optional<Wallet> wallet = walletRepository.findById(id);
+        Optional<Wallet> wallet = walletRepository.findActiveById(id);
 
         if(wallet.isEmpty()){
             throw new WalletNotFoundException("Wallet with id " + id + " not found!");
@@ -131,13 +134,13 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public BaseResponseDto update(Long id, ReqSaveWalletDto requests) {
-        Optional<Wallet> wallet = walletRepository.findById(id);
+        Optional<Wallet> wallet = walletRepository.findActiveById(id);
 
         if(wallet.isEmpty()){
             throw new WalletNotFoundException("Wallet with id " + id + " not found!");
         }
 
-        Optional<WalletType> walletType = walletTypeRepository.findById(requests.getTypeId().longValue());
+        Optional<WalletType> walletType = walletTypeRepository.findActiveById(requests.getTypeId().longValue());
 
         if(walletType.isEmpty()){
             throw new WalletTypeNotFoundException("Wallet type with id " + requests.getTypeId() + " not found");
@@ -177,7 +180,7 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public BaseResponseDto delete(Long id) {
-        Optional<Wallet> wallet = walletRepository.findById(id);
+        Optional<Wallet> wallet = walletRepository.findActiveById(id);
 
         if (wallet.isEmpty()) {
             throw new WalletNotFoundException("Wallet with id " + id + " not found!");
