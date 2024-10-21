@@ -6,4 +6,6 @@ import com.bootcamp_berijalan.transactionservice.util.CustomUserDetails;
 
 public interface WalletService {
     BaseResponseDto save(CustomUserDetails customUserDetails, ReqSaveWalletDto requests);
+    BaseResponseDto getAllWalletsByUserId(CustomUserDetails customUserDetails);
+    BaseResponseDto update(Long id, ReqSaveWalletDto requests);
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 public class ResWalletDto {
     private Integer id;
     private String name;
-    private WalletType walletType;
+    private ResWalletTypeDto walletType;
     private Double amount;
     private Double totalIncome;
     private Double totalExpense;

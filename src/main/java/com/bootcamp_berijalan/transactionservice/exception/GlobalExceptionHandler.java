@@ -27,7 +27,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, status);
     }
 
-    @ExceptionHandler({UsernameNotFoundException.class, WalletTypeNotFoundException.class, AuthenticationException.class})
+    @ExceptionHandler(
+            {
+                    UsernameNotFoundException.class,
+                    WalletTypeNotFoundException.class,
+                    AuthenticationException.class,
+                    WalletNotFoundException.class
+            }
+            )
     public ResponseEntity<BaseResponseDto> handleCustomExceptions(RuntimeException exception) {
         return buildResponse(HttpStatus.BAD_REQUEST, exception.getMessage());
     }
