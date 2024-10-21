@@ -5,4 +5,7 @@ import com.bootcamp_berijalan.transactionservice.dto.request.ReqSaveTransactionD
 
 public interface TransactionService {
     BaseResponseDto save(ReqSaveTransactionDto request);
+    BaseResponseDto getTransactionsByWalletId(Long walletId);
+    BaseResponseDto update(Long id, ReqSaveTransactionDto request);
+    BaseResponseDto delete(Long id);
 }

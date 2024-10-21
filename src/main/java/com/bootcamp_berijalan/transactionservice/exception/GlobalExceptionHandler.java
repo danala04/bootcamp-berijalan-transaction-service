@@ -34,7 +34,8 @@ public class GlobalExceptionHandler {
                     AuthenticationException.class,
                     WalletNotFoundException.class,
                     TransactionTypeNotFoundException.class,
-                    CategoryNotFoundException.class
+                    CategoryNotFoundException.class,
+                    TransactionNotFoundException.class
             }
             )
     public ResponseEntity<BaseResponseDto> handleCustomExceptions(RuntimeException exception) {
