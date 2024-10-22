@@ -23,7 +23,11 @@ public class WalletFactoryService {
         List<Transaction> transactions = transactionRepository.findByWalletIdAndDeletedAtIsNull(walletId);
 
         if (transactions.isEmpty()) {
-            throw new TransactionNotFoundException("Transaction with wallet id " + walletId + " not found");
+            return new ResTotalIncomeExpenseDto(
+                    0.0,
+                    0.0,
+                    0.0
+            );
         }
 
         double totalIncome = 0;
