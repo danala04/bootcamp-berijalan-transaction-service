@@ -98,11 +98,13 @@ public class TransactionServiceImpl implements TransactionService {
     public BaseResponseDto getTransactionsByWalletId(Long walletId) {
         List<Transaction> transactions = transactionRepository.findByWalletIdAndDeletedAtIsNull(walletId);
 
-        if (transactions.isEmpty()) {
-            throw new TransactionNotFoundException("Transaction with wallet id " + walletId + " not found");
+        List<Transfer> transfers = transferRepository.findAllBySourceWalletIdOrDestinationWalletIdAndDeletedAtIsNull(walletId, walletId);
+
+        if (transactions.isEmpty() && transfers.isEmpty()) {
+            throw new TransactionNotFoundException("Transactions and transfers for wallet id " + walletId + " not found");
         }
 
-        List<ResTransactionDto> responseList = new ArrayList<>(transactions.stream()
+        List<ResTransactionDto> responseList = transactions.stream()
                 .map(transaction -> new ResTransactionDto(
                         transaction.getId(),
                         convertToDateString(transaction.getDate()),
@@ -117,20 +119,19 @@ public class TransactionServiceImpl implements TransactionService {
                                 transaction.getCategory().getName()
                         )
                 ))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
 
-        List<Transfer> transfers = transferRepository.findAllBySourceWalletIdOrDestinationWalletIdAndDeletedAtIsNull(walletId, walletId);
-        if(!transfers.isEmpty()){
-            var transactionName = "";
-
+        if (!transfers.isEmpty()) {
             Optional<TransactionType> transactionType = transactionTypeRepository.findActiveById(Constant.TRANSFER_TYPE_ID.longValue());
             Optional<Category> transactionCategory = categoryRepository.findActiveById(Constant.TRANSFER_CATEGORY_ID.longValue());
 
-            for(Transfer transfer : transfers){
+            for (Transfer transfer : transfers) {
+                var transactionName = "";
+
                 if(walletId == transfer.getSourceWallet().getId()){
                     transactionName = "Transfer to " + transfer.getDestinationWallet().getName();
                 } else {
-                    transactionName = "Transfer from" + transfer.getSourceWallet().getName();
+                    transactionName = "Transfer from " + transfer.getSourceWallet().getName();
                 }
 
                 ResTransactionDto transferTransactionDto = new ResTransactionDto(
@@ -148,17 +149,7 @@ public class TransactionServiceImpl implements TransactionService {
                         )
                 );
 
-                if (transferTransactionDto != null) {
-                    System.out.println(transferTransactionDto);
-                    try {
-                        responseList.add(transferTransactionDto);
-                    } catch (Exception e) {
-                        System.err.println("Failed to add transferTransactionDto: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.out.println("TransferTransactionDto is null");
-                }
+                responseList.add(transferTransactionDto);
             }
         }
 

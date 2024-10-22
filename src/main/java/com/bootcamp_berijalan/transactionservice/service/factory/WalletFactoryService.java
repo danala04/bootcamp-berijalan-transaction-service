@@ -27,14 +27,6 @@ public class WalletFactoryService {
     public ResTotalIncomeExpenseDto setTotalIncomeExpense(long walletId) {
         List<Transaction> transactions = transactionRepository.findByWalletIdAndDeletedAtIsNull(walletId);
 
-        if (transactions.isEmpty()) {
-            return new ResTotalIncomeExpenseDto(
-                    0.0,
-                    0.0,
-                    0.0
-            );
-        }
-
         double totalIncome = 0;
         double totalExpense = 0;
 
