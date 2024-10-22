@@ -5,18 +5,12 @@ import com.bootcamp_berijalan.transactionservice.dto.request.ReqSaveTransactionD
 import com.bootcamp_berijalan.transactionservice.dto.response.ResCategoryDto;
 import com.bootcamp_berijalan.transactionservice.dto.response.ResTransactionDto;
 import com.bootcamp_berijalan.transactionservice.dto.response.ResTransactionTypeDto;
-import com.bootcamp_berijalan.transactionservice.entity.Category;
-import com.bootcamp_berijalan.transactionservice.entity.Transaction;
-import com.bootcamp_berijalan.transactionservice.entity.TransactionType;
-import com.bootcamp_berijalan.transactionservice.entity.Wallet;
+import com.bootcamp_berijalan.transactionservice.entity.*;
 import com.bootcamp_berijalan.transactionservice.exception.CategoryNotFoundException;
 import com.bootcamp_berijalan.transactionservice.exception.TransactionNotFoundException;
 import com.bootcamp_berijalan.transactionservice.exception.TransactionTypeNotFoundException;
 import com.bootcamp_berijalan.transactionservice.exception.WalletNotFoundException;
-import com.bootcamp_berijalan.transactionservice.repository.CategoryRepository;
-import com.bootcamp_berijalan.transactionservice.repository.TransactionRepository;
-import com.bootcamp_berijalan.transactionservice.repository.TransactionTypeRepository;
-import com.bootcamp_berijalan.transactionservice.repository.WalletRepository;
+import com.bootcamp_berijalan.transactionservice.repository.*;
 import com.bootcamp_berijalan.transactionservice.service.TransactionService;
 import com.bootcamp_berijalan.transactionservice.util.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -43,6 +38,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Autowired
     WalletRepository walletRepository;
+
+    @Autowired
+    TransferRepository transferRepository;
 
     @Override
     public BaseResponseDto save(ReqSaveTransactionDto request) {
@@ -104,7 +102,7 @@ public class TransactionServiceImpl implements TransactionService {
             throw new TransactionNotFoundException("Transaction with wallet id " + walletId + " not found");
         }
 
-        List<ResTransactionDto> responseList = transactions.stream()
+        List<ResTransactionDto> responseList = new ArrayList<>(transactions.stream()
                 .map(transaction -> new ResTransactionDto(
                         transaction.getId(),
                         convertToDateString(transaction.getDate()),
@@ -119,7 +117,52 @@ public class TransactionServiceImpl implements TransactionService {
                                 transaction.getCategory().getName()
                         )
                 ))
-                .toList();
+                .collect(Collectors.toList()));
+
+        List<Transfer> transfers = transferRepository.findAllBySourceWalletIdOrDestinationWalletIdAndDeletedAtIsNull(walletId, walletId);
+        if(!transfers.isEmpty()){
+            var transactionName = "";
+
+            Optional<TransactionType> transactionType = transactionTypeRepository.findActiveById(Constant.TRANSFER_TYPE_ID.longValue());
+            Optional<Category> transactionCategory = categoryRepository.findActiveById(Constant.TRANSFER_CATEGORY_ID.longValue());
+
+            for(Transfer transfer : transfers){
+                if(walletId == transfer.getSourceWallet().getId()){
+                    transactionName = "Transfer to " + transfer.getDestinationWallet().getName();
+                } else {
+                    transactionName = "Transfer from" + transfer.getSourceWallet().getName();
+                }
+
+                ResTransactionDto transferTransactionDto = new ResTransactionDto(
+                        null,
+                        convertToDateString(transfer.getTransferDate()),
+                        transactionName,
+                        new ResTransactionTypeDto(
+                                transactionType.get().getId(),
+                                transactionType.get().getName()
+                        ),
+                        transfer.getAmount(),
+                        new ResCategoryDto(
+                                transactionCategory.get().getId(),
+                                transactionCategory.get().getName()
+                        )
+                );
+
+                if (transferTransactionDto != null) {
+                    System.out.println(transferTransactionDto);
+                    try {
+                        responseList.add(transferTransactionDto);
+                    } catch (Exception e) {
+                        System.err.println("Failed to add transferTransactionDto: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("TransferTransactionDto is null");
+                }
+            }
+        }
+
+        responseList.sort(Comparator.comparing(dto -> convertToInstant(dto.getDate())));
 
         Map<String, Object> data = new HashMap<>();
         data.put(Constant.TRANSACTIONS, responseList);

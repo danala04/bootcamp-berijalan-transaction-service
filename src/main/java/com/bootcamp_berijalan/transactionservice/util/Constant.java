@@ -8,5 +8,7 @@ public interface Constant {
     String TRANSACTIONS = "transactions";
     Integer INCOME_ID = 1;
     Integer EXPENSE_ID = 2;
+    Integer TRANSFER_CATEGORY_ID = 3;
+    Integer TRANSFER_TYPE_ID = 3;
     String TRANSFER = "transfer";
 }
