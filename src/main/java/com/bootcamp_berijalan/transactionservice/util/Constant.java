@@ -11,4 +11,6 @@ public interface Constant {
     Integer TRANSFER_CATEGORY_ID = 3;
     Integer TRANSFER_TYPE_ID = 3;
     String TRANSFER = "transfer";
+    String TRANSACTIONTYPES = "transactiontypes";
+    String CATEGORIES = "categories";
 }
